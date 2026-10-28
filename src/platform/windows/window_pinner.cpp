@@ -322,6 +322,13 @@ namespace window_pinner {
             return true;
           }
 
+          // Launchers often exit after starting their child (e.g. RetroBat), which breaks the
+          // chain to the configured parent. A child of an already pinned process is pinned too.
+          auto cached = _process_cache.find(parent->first);
+          if (cached != _process_cache.end() && cached->second.pinned && cached->second.creation_time == parent_creation) {
+            return true;
+          }
+
           current = parent->first;
           current_creation = parent_creation;
         }
