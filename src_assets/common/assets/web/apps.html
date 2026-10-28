@@ -386,6 +386,28 @@
                   v-model="editForm['virtual-display']"
                   default="false"
         ></Checkbox>
+        <!-- pin windows to the stream display -->
+        <template v-if="platform === 'windows'">
+          <Checkbox class="mb-3"
+                    id="pinWindows"
+                    label="apps.pin_windows"
+                    desc="apps.pin_windows_desc"
+                    v-model="editForm['pin-windows']"
+                    default="false"
+          ></Checkbox>
+          <div class="mb-3" v-if="editForm['pin-windows']">
+            <label for="pinParentProcesses" class="form-label">{{ $t('apps.pin_parent_processes') }}</label>
+            <input type="text" class="form-control monospace" id="pinParentProcesses" aria-describedby="pinParentProcessesHelp"
+                   v-model="editForm['pin-parent-processes']" placeholder="steam.exe" />
+            <div id="pinParentProcessesHelp" class="form-text">{{ $t('apps.pin_parent_processes_desc') }}</div>
+          </div>
+          <div class="mb-3" v-if="editForm['pin-windows']">
+            <label for="pinWindowTitles" class="form-label">{{ $t('apps.pin_window_titles') }}</label>
+            <input type="text" class="form-control monospace" id="pinWindowTitles" aria-describedby="pinWindowTitlesHelp"
+                   v-model="editForm['pin-window-titles']" placeholder="Big Picture" />
+            <div id="pinWindowTitlesHelp" class="form-text">{{ $t('apps.pin_window_titles_desc') }}</div>
+          </div>
+        </template>
         <!-- use app identity -->
         <Checkbox class="mb-3"
                   id="useAppIdentity"
@@ -547,6 +569,9 @@
     "per-client-app-identity": false,
     "allow-client-commands": true,
     "virtual-display": false,
+    "pin-windows": false,
+    "pin-parent-processes": "",
+    "pin-window-titles": "",
     "terminate-on-pause": false,
     "gamepad": ""
   }

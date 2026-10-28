@@ -78,6 +78,12 @@
     "run_as_desc": "Questo può essere necessario per alcune applicazioni che richiedono permessi di amministratore per funzionare correttamente.",
     "wait_all": "Continua lo streaming fino all'uscita di tutti i processi dell'app",
     "wait_all_desc": "Questo continuerà lo streaming fino a quando tutti i processi avviati dall'app non saranno terminati. Quando non è selezionato, lo streaming si fermerà all'uscita del processo iniziale dell'app, anche se altri processi sono ancora in esecuzione.",
+    "pin_windows": "Blocca le finestre dell'app sul display dello stream",
+    "pin_windows_desc": "Durante lo streaming su un display virtuale, tiene le finestre di questa app su quel display: quelle che si aprono su un altro schermo vengono spostate sul display dello stream. Vale per i processi avviati dall'app, per quelli avviati dopo il lancio dai processi padre indicati sotto e per le finestre con il titolo corrispondente. Le altre finestre non vengono toccate.",
+    "pin_parent_processes": "Processi padre da seguire",
+    "pin_parent_processes_desc": "Nomi di eseguibili separati da virgole. Anche i processi che questi avviano durante la sessione (ad es. i giochi lanciati da Steam già aperto) vengono bloccati sul display. I processi di supporto di Steam vengono ignorati.",
+    "pin_window_titles": "Titoli di finestra da bloccare",
+    "pin_window_titles_desc": "Parti di titoli di finestra separate da virgole, senza distinzione tra maiuscole e minuscole, da bloccare sempre (ad es. Big Picture, che corrisponde alla finestra di Steam Big Picture in qualsiasi lingua).",
     "working_dir": "Directory di Lavoro",
     "working_dir_desc": "La directory di lavoro che dovrebbe essere passata al processo. Per esempio, alcune applicazioni usano la directory di lavoro per cercare i file di configurazione. Se non impostato, Apollo userà come predefinita la directory padre del comando"
   },

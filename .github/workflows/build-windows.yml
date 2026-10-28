@@ -1,0 +1,76 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Windows installer
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      BUILD_VERSION: 0.4.6.${{ github.run_number }}
+      COMMIT: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # The web UI is built with npm; MSYS2's Node.js crashes on startup (see docs/building.md)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+          install: >-
+            git
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-cppwinrt
+            mingw-w64-ucrt-x86_64-curl-winssl
+            mingw-w64-ucrt-x86_64-MinHook
+            mingw-w64-ucrt-x86_64-miniupnpc
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-nlohmann_json
+            mingw-w64-ucrt-x86_64-nsis
+            mingw-w64-ucrt-x86_64-onevpl
+            mingw-w64-ucrt-x86_64-openssl
+            mingw-w64-ucrt-x86_64-opus
+            mingw-w64-ucrt-x86_64-toolchain
+
+      - name: Build
+        run: |
+          cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_DOCS=OFF -DBUILD_TESTS=OFF
+          ninja -C build
+
+      - name: Package
+        run: |
+          cpack -G NSIS --config ./build/CPackConfig.cmake
+          cpack -G ZIP --config ./build/CPackConfig.cmake
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Apollonio-windows-${{ env.BUILD_VERSION }}
+          path: |
+            build/cpack_artifacts/*.exe
+            build/cpack_artifacts/*.zip
+          if-no-files-found: error

@@ -41,6 +41,7 @@
   // from_utf8() string conversion function
   #include "platform/windows/misc.h"
   #include "platform/windows/utils.h"
+  #include "platform/windows/window_pinner.h"
 
   // _SH constants for _wfsopen()
   #include <share.h>
@@ -183,6 +184,10 @@ namespace proc {
       // Ensure starting from a clean slate
       terminate(false, false);
     }
+
+#ifdef _WIN32
+    auto session_start = window_pinner::now();
+#endif
 
     _app = app;
     _app_id = util::from_view(app.id);
@@ -496,6 +501,16 @@ namespace proc {
     _app_launch_time = std::chrono::steady_clock::now();
 
   #ifdef _WIN32
+    if (_app.pin_windows && this->virtual_display) {
+      window_pinner::options_t pin_options;
+      pin_options.display_name = platf::from_utf8(this->display_name);
+      pin_options.job = _process_group ? (HANDLE) _process_group.native_handle() : nullptr;
+      pin_options.parent_processes = window_pinner::split_list(_app.pin_parent_processes);
+      pin_options.window_titles = window_pinner::split_list(_app.pin_window_titles);
+      pin_options.session_start = session_start;
+      window_pinner::start(std::move(pin_options));
+    }
+
     auto resetHDRThread = std::thread([this, enable_hdr = launch_session->enable_hdr]{
       // Windows doesn't seem to be able to set HDR correctly when a display is just connected / changed resolution,
       // so we have tooggle HDR for the virtual display manually after a delay.
@@ -706,6 +721,10 @@ namespace proc {
   void proc_t::terminate(bool immediate, bool needs_refresh) {
     std::error_code ec;
     placebo = false;
+
+#ifdef _WIN32
+    window_pinner::stop();
+#endif
 
     if (!immediate) {
       terminate_process_group(_process, _process_group, _app.exit_timeout);
@@ -1360,6 +1379,9 @@ namespace proc {
           ctx.per_client_app_identity = app_node.value("per-client-app-identity", false);
           ctx.allow_client_commands = app_node.value("allow-client-commands", true);
           ctx.terminate_on_pause = app_node.value("terminate-on-pause", false);
+          ctx.pin_windows = app_node.value("pin-windows", false);
+          ctx.pin_parent_processes = app_node.value("pin-parent-processes", "");
+          ctx.pin_window_titles = app_node.value("pin-window-titles", "");
           ctx.gamepad = app_node.value("gamepad", "");
 
           // Calculate a unique application id.

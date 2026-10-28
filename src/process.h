@@ -96,6 +96,9 @@ namespace proc {
     bool per_client_app_identity;
     bool allow_client_commands;
     bool terminate_on_pause;
+    bool pin_windows = false;
+    std::string pin_parent_processes;
+    std::string pin_window_titles;
     int  scale_factor;
     std::chrono::seconds exit_timeout;
   };
