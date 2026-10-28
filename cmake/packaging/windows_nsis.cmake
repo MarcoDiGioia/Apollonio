@@ -3,6 +3,15 @@
 
 set(CPACK_NSIS_INSTALLED_ICON_NAME "${PROJECT__DIR}\\\\${PROJECT_EXE}")
 
+# Extra pre-install commands
+# Stops the running service so an existing installation can be upgraded in place
+SET(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS
+        "${CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS}
+        nsExec::ExecToLog 'net stop ApolloService'
+        nsExec::ExecToLog 'taskkill /f /im sunshine.exe'
+        nsExec::ExecToLog 'taskkill /f /im sunshinesvc.exe'
+        ")
+
 # Extra install commands
 # Restores permissions on the install directory
 # Migrates config files from the root into the new config folder
@@ -67,8 +76,9 @@ set(CPACK_NSIS_DELETE_ICONS_EXTRA
         Delete '\$SMPROGRAMS\\\\$MUI_TEMP\\\\${CMAKE_PROJECT_NAME}.lnk'
         ")
 
-# Checking for previous installed versions
-set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL "ON")
+# Installing over a previous version upgrades it in place: the install commands above
+# reconfigure the existing service, driver and firewall rules, and the configuration is kept
+set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL "OFF")
 
 # set(CPACK_NSIS_HELP_LINK "https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2getting__started.html")
 # set(CPACK_NSIS_URL_INFO_ABOUT "${CMAKE_PROJECT_HOMEPAGE_URL}")
