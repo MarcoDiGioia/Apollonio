@@ -35,6 +35,10 @@ namespace window_pinner {
     constexpr int MAX_MOVES_PER_WINDOW = 20;
     constexpr int MAX_ANCESTOR_DEPTH = 32;
 
+    // Whether a pinned window has been seen this session, and when one was last seen
+    std::atomic<bool> pinned_seen {false};
+    std::atomic<std::chrono::steady_clock::rep> pinned_last_seen {0};
+
     // Helper processes of launchers that own their own long-lived windows (main client,
     // friends list, overlay). They are only pinned through a window title match.
     const std::vector<std::wstring> IGNORED_DESCENDANTS {
@@ -165,6 +169,7 @@ namespace window_pinner {
       std::unordered_map<HWND, window_state_t> _windows;
       process_table_t _processes;
       bool _processes_valid = false;
+      bool _found_pinned = false;
 
       static BOOL CALLBACK find_monitor(HMONITOR monitor, HDC, LPRECT, LPARAM param) {
         auto self = reinterpret_cast<pinner_t *>(param);
@@ -196,7 +201,13 @@ namespace window_pinner {
         }
 
         _processes_valid = false;
+        _found_pinned = false;
         EnumWindows(visit_window, reinterpret_cast<LPARAM>(this));
+
+        if (_found_pinned) {
+          pinned_last_seen = std::chrono::steady_clock::now().time_since_epoch().count();
+          pinned_seen = true;
+        }
 
         // Forget windows that no longer exist
         for (auto it = _windows.begin(); it != _windows.end();) {
@@ -205,11 +216,7 @@ namespace window_pinner {
       }
 
       void visit(HWND hwnd) {
-        if (!IsWindowVisible(hwnd) || IsIconic(hwnd)) {
-          return;
-        }
-
-        if (MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) == _target) {
+        if (!IsWindowVisible(hwnd)) {
           return;
         }
 
@@ -220,6 +227,13 @@ namespace window_pinner {
         }
 
         if (!title_matches(hwnd) && !process_matches(pid)) {
+          return;
+        }
+
+        // Minimized and already pinned windows still count as open app windows
+        _found_pinned = true;
+
+        if (IsIconic(hwnd) || MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) == _target) {
           return;
         }
 
@@ -414,6 +428,7 @@ namespace window_pinner {
       wait_cv.notify_all();
       worker.join();
       stop_requested = false;
+      pinned_seen = false;
 
       BOOST_LOG(info) << "Stopped pinning windows to the stream display"sv;
     }
@@ -434,6 +449,7 @@ namespace window_pinner {
     }
 
     BOOST_LOG(info) << "Pinning app windows to stream display "sv << platf::to_utf8(options.display_name);
+    pinned_seen = false;
 
     worker = std::thread([options = std::move(options)]() mutable {
       pinner_t pinner(std::move(options));
@@ -444,6 +460,15 @@ namespace window_pinner {
   void stop() {
     std::lock_guard lock(control_mutex);
     stop_locked();
+  }
+
+  bool windows_closed(std::chrono::milliseconds grace) {
+    if (!pinned_seen) {
+      return false;
+    }
+
+    auto last_seen = std::chrono::steady_clock::time_point(std::chrono::steady_clock::duration(pinned_last_seen.load()));
+    return std::chrono::steady_clock::now() - last_seen > grace;
   }
 
   std::vector<std::wstring> split_list(const std::string &list) {

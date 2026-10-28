@@ -407,6 +407,14 @@
                    v-model="editForm['pin-window-titles']" placeholder="Big Picture" />
             <div id="pinWindowTitlesHelp" class="form-text">{{ $t('apps.pin_window_titles_desc') }}</div>
           </div>
+          <Checkbox class="mb-3"
+                    v-if="editForm['pin-windows']"
+                    id="pinEndSession"
+                    label="apps.pin_end_session"
+                    desc="apps.pin_end_session_desc"
+                    v-model="editForm['pin-end-session']"
+                    default="false"
+          ></Checkbox>
         </template>
         <!-- use app identity -->
         <Checkbox class="mb-3"
@@ -572,6 +580,7 @@
     "pin-windows": false,
     "pin-parent-processes": "",
     "pin-window-titles": "",
+    "pin-end-session": false,
     "terminate-on-pause": false,
     "gamepad": ""
   }

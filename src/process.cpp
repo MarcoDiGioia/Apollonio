@@ -586,6 +586,16 @@ namespace proc {
     });
 #endif
 
+#ifdef _WIN32
+    // Detached apps (e.g. Steam Big Picture) have no process to wait for, so the session would
+    // never end on its own. Their pinned windows tell when the user is done with them.
+    if (_app_id > 0 && _app.pin_windows && _app.pin_end_session && window_pinner::windows_closed(5s)) {
+      BOOST_LOG(info) << "All pinned windows of app ["sv << _app_name << "] were closed, ending the session"sv;
+      terminate();
+      return 0;
+    }
+#endif
+
     if (placebo) {
       return _app_id;
     } else if (_app.wait_all && _process_group && platf::process_group_running((std::uintptr_t) _process_group.native_handle())) {
@@ -1382,6 +1392,7 @@ namespace proc {
           ctx.pin_windows = app_node.value("pin-windows", false);
           ctx.pin_parent_processes = app_node.value("pin-parent-processes", "");
           ctx.pin_window_titles = app_node.value("pin-window-titles", "");
+          ctx.pin_end_session = app_node.value("pin-end-session", false);
           ctx.gamepad = app_node.value("gamepad", "");
 
           // Calculate a unique application id.

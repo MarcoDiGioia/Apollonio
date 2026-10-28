@@ -84,6 +84,8 @@
     "pin_parent_processes_desc": "Nomi di eseguibili separati da virgole. Anche i processi che questi avviano durante la sessione (ad es. i giochi lanciati da Steam già aperto) vengono bloccati sul display. I processi di supporto di Steam vengono ignorati.",
     "pin_window_titles": "Titoli di finestra da bloccare",
     "pin_window_titles_desc": "Parti di titoli di finestra separate da virgole, senza distinzione tra maiuscole e minuscole, da bloccare sempre (ad es. Big Picture, che corrisponde alla finestra di Steam Big Picture in qualsiasi lingua).",
+    "pin_end_session": "Termina la sessione quando le finestre bloccate si chiudono",
+    "pin_end_session_desc": "Termina lo stream quando tutte le finestre bloccate sono chiuse da qualche secondo. Utile per i comandi separati come Steam Big Picture, la cui sessione altrimenti resta aperta finché non viene chiusa dal client.",
     "working_dir": "Directory di Lavoro",
     "working_dir_desc": "La directory di lavoro che dovrebbe essere passata al processo. Per esempio, alcune applicazioni usano la directory di lavoro per cercare i file di configurazione. Se non impostato, Apollo userà come predefinita la directory padre del comando"
   },

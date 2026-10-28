@@ -125,6 +125,8 @@
     "pin_parent_processes_desc": "Comma-separated executable names. Processes started during the session by one of these (e.g. games launched by an already running Steam) are pinned too. Steam helper processes are ignored.",
     "pin_window_titles": "Pinned window titles",
     "pin_window_titles_desc": "Comma-separated, case-insensitive parts of window titles that are always pinned (e.g. Big Picture, which matches the Steam Big Picture window in any language).",
+    "pin_end_session": "End the session when pinned windows close",
+    "pin_end_session_desc": "Ends the stream once every pinned window has been closed for a few seconds. Useful for detached commands such as Steam Big Picture, whose session otherwise stays open until it is quit from the client.",
     "virtual_display_primary": "Enforce Virtual Display Primary",
     "virtual_display_primary_desc": "Automatically set the virtual display as primary display when the app starts. Virtual display will always be set to primary when client requests to use virtual display. (Recommended to keep on) [Broken on Windows 11 24H2]",
     "wait_all": "Continue streaming until all app processes exit",

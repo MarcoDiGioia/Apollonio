@@ -5,6 +5,7 @@
 #pragma once
 
 // standard includes
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -59,6 +60,14 @@ namespace window_pinner {
    * @brief Stop pinning windows. Windows are left where they are.
    */
   void stop();
+
+  /**
+   * @brief Check whether the pinned app has closed all its windows.
+   * @param grace How long no pinned window may be open before the app counts as closed,
+   *              so that switching between windows (e.g. a launcher starting a game) is ignored.
+   * @return `true` if pinned windows were seen this session and none has been open for longer than `grace`.
+   */
+  bool windows_closed(std::chrono::milliseconds grace);
 
   /**
    * @brief Split a comma-separated list into trimmed, non-empty entries.

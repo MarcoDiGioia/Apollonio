@@ -99,6 +99,7 @@ namespace proc {
     bool pin_windows = false;
     std::string pin_parent_processes;
     std::string pin_window_titles;
+    bool pin_end_session = false;
     int  scale_factor;
     std::chrono::seconds exit_timeout;
   };
