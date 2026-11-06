@@ -21,18 +21,16 @@ Trasformare il modello di streaming locale da semplice *"desktop mirroring passi
 
 ```mermaid
 flowchart TB
-    subgraph Host ["Host: Apollonio (Windows PC)"]
-        ApolloSvc["Apollonio Server (SYSTEM Service)<br/>Capture DXGI, Encoding, Protocollo"]
-        ShellSup["apollonio-shell.exe (Sessione Utente)<br/>Supervisor finestre, Z-order, Desktop Config"]
-        Backdrop["Backdrop Nero Kiosk (Finestra Hardware Fullscreen)"]
-        BaseProvider["BaseAppProvider (Steam / Playnite)"]
+    subgraph Host ["Host: Apollonio (Windows PC o Linux Gaming Rig)"]
+        ApolloSvc["Apollonio Server (SYSTEM / Daemon Service)<br/>Capture DXGI/PipeWire, Encoding, Protocollo"]
+        ShellSup["apollonio-shell (Supervisor multipiattaforma)<br/>Windows: Win32 HWND + Backdrop Kiosk<br/>Linux: Gamescope / Wayland Compositor Sandbox"]
+        BaseProvider["BaseAppProvider (Steam Big Picture / Playnite)"]
         ActiveGame["Gioco in esecuzione"]
         
-        ApolloSvc <-->|Named Pipe: \\.\pipe\ApollonioShellPipe| ShellSup
-        ShellSup -->|Z-Order: Cima| ActiveGame
-        ShellSup -->|Z-Order: Sotto il gioco| BaseProvider
-        ShellSup -->|Z-Order: Sotto la base| Backdrop
-        ShellSup -->|Z-Order: Sotto il backdrop (Invisibili)| HiddenLaunchers["Launcher terze parti, Explorer, etc."]
+        ApolloSvc <-->|IPC: Named Pipe (Win) / Unix Socket (Lin)| ShellSup
+        ShellSup -->|Gestione Finestre & Z-Order| ActiveGame
+        ShellSup -->|Sotto il gioco (mai chiusa)| BaseProvider
+        ShellSup -->|Invisibili sotto la sandbox| HiddenLaunchers["Launcher terze parti, Desktop, etc."]
     end
 
     subgraph Network ["Rete Locale"]
@@ -75,20 +73,21 @@ Estensione del canale di controllo cifrato già presente in Moonlight / Apollo:
 
 ## 4. Specifiche Dettagliate delle Componenti
 
-### 4.1 Host: `apollonio-shell.exe` (Window Supervisor)
-- **Linguaggio e toolchain**: C++20/23, compilato con il CMake di Apollonio.
-- **Contesto di esecuzione**: Eseguito nella **Sessione Utente interattiva** con il token dell'utente loggato (`CreateProcessAsUserW` da parte del servizio Apollonio).
-- **Compiti**:
-  1. Creare la finestra di **Backdrop Nero** sul display virtuale (classe `ApollonioShellBackdrop`, stile `WS_POPUP`, sfondo nero pennello GDI, flag `WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`).
-  2. Agganciare gli eventi Win32: `SetWinEventHook` su `EVENT_SYSTEM_FOREGROUND`, `EVENT_OBJECT_SHOW`, `EVENT_OBJECT_DESTROY`.
-  3. Mantenere lo **Z-Order rigoroso**:
-     - Finestra di gioco attiva in cima (`SetForegroundWindow` + `BringWindowToTop`).
-     - Base App (`Steam Big Picture`) subito sotto.
-     - Backdrop nero subito sotto la Base App.
-     - Qualsiasi altra finestra (launcher EA/Ubisoft, taskbar, finestre di sfondo) spinta forzatamente **SOTTO** il backdrop (`SetWindowPos(hwnd, g_backdrop, ...)`).
-  4. Neutralizzazione automatica della **Desktop Configuration di Steam Input**: all'avvio dello stream, azzerare le azioni mouse del profilo desktop di Steam per evitare conflitti con l'emulazione client; ripristinare il file al termine della sessione.
-  5. Calcolo della modalità mouse (`CURSOR_MODE`) tramite `GetCursorInfo()` e moduli caricati (`xinput*.dll`, `gameinput.dll`, `sdl*.dll`).
-  6. Interfaccia `BaseAppProvider` per supportare Steam Big Picture, Playnite ed eventualmente Xbox Console Mode.
+### 4.1 Host: `apollonio-shell` (Window Supervisor Multipiattaforma)
+- **Linguaggio e toolchain**: C++20/23, compilato con il CMake di Apollonio (MSVC su Windows, GCC/Clang su Linux, cross-compilabile con Zig).
+- **Astrazione OS (`IShellPlatform`)**:
+  - **Backend Windows (`platform/windows`)**:
+    1. Finestra **Backdrop Nero Kiosk** a schermo intero sul display virtuale (classe `ApollonioShellBackdrop`, `WS_POPUP`, nero GDI, `WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`).
+    2. Eventi Win32 via `SetWinEventHook` (`EVENT_SYSTEM_FOREGROUND`, `EVENT_OBJECT_SHOW`, `EVENT_OBJECT_DESTROY`).
+    3. **Z-Order forzato**: Gioco attivo in cima $\to$ Base App subito sotto $\to$ Backdrop nero $\to$ Tutto il resto sotto il backdrop.
+    4. Neutralizzazione automatica della **Desktop Configuration di Steam Input** (`localconfig.vdf` o template vuoto) per evitare conflitti mouse.
+    5. Calcolo della modalità mouse (`CURSOR_MODE`) tramite `GetCursorInfo()` e moduli caricati (`xinput*.dll`, `gameinput.dll`, `sdl*.dll`).
+  - **Backend Linux (`platform/linux`)**:
+    1. Integrazione con **Gamescope** (il compositor Wayland di Valve per SteamOS) o X11/Wayland dedicato: Gamescope incapsula Steam Big Picture e i giochi in una sessione a tutto schermo isolata senza accesso al desktop.
+    2. Rilevamento Steam AppID tramite monitoraggio `/proc` e file di stato `~/.steam/steam/registry.vdf`.
+    3. Audio ducking nativo PipeWire/PulseAudio.
+- **Interfaccia `BaseAppProvider`**: Astrazione modulare per Steam Big Picture (primario), Playnite ed eventualmente Xbox Console Mode.
+- **Canale IPC con Apollonio Server**: Named Pipe su Windows (`\\.\pipe\ApollonioShellPipe`), Unix Domain Socket su Linux (`/tmp/apollonio-shell.sock`).
 
 ### 4.2 Host: Modifiche al Core di Apollonio (`src/`)
 - **Gestione processi**: Separare il concetto di *Sessione Streaming* (che possiede la Base App) dai *Processi Gioco Gestiti*, superando il modello singleton `proc_t` a singola app.

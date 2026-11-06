@@ -8,7 +8,11 @@
 
 - **Fase Attiva**: **Fase 0 - Analisi Preliminare & Spike di Validazione**
 - **Data Ultimo Aggiornamento**: 2026-11-06
-- **Stato Generale**: Architettura di sistema approvata al 100%. Nessun codice in produzione è stato ancora modificato nei branch master. È stato creato e compilato il tool diagnostico standalone per la validazione host (`shell_probe.exe`). In corso: analisi dettagliata della parte client (Artemide / Tizen).
+- **Topologia di Sviluppo**:
+  - **Macchina di Sviluppo**: **Linux** (workstation/laptop per scrittura codice, git, Docker e cross-compilazione).
+  - **Host di Gioco (Server)**: **PC Gaming Windows 10/11** (GPU NVIDIA/AMD, Steam Big Picture, display virtuale, Apollonio).
+  - **Client (Ricevitore TV)**: **Samsung Smart TV** (Tizen OS 5.5+, Artemide `.wgt`).
+- **Stato Generale**: Architettura approvata al 100%. Nessun codice di produzione modificato su master. Tool diagnostico Windows (`shell_probe.exe`) cross-compilato con successo da Linux per il PC gaming. In corso: definizione dei test di Fase 0.
 
 ---
 
@@ -56,25 +60,53 @@
 8. **Schermata Iniziale Artemide**:
    - Viene mantenuta la griglia delle app, aggiungendo un'opzione *"Avvia automaticamente all'avvio dello stream"* per permettere l'ingresso diretto a schermo intero nella Base App.
 
+9. **Architettura Host Multipiattaforma (Windows + Linux)**:
+   - Il Supervisor `apollonio-shell` adotta un'interfaccia astratta `IShellPlatform`:
+     - **Windows Backend**: Win32 HWND Backdrop Kiosk, `SetWinEventHook`, `IddSampleDriver`, registro Steam.
+     - **Linux Backend**: Gamescope / Wayland compositor sandbox, PipeWire/DRM/KMS, Steam process monitoring.
+   - Permette lo sviluppo e il testing sia su workstation Linux sia su macchine gaming Windows.
+
 ---
 
 ## 3. Elementi Realizzati / Pronti
 
 | Elemento | Percorso File | Stato | Descrizione |
 |---|---|---|---|
-| **Documento di Design** | `/home/antigravity/.gemini/.../console_shell_design.md` | ✅ Completato | Specifica iniziale dettagliata |
-| **Piano di Sviluppo** | [DEVELOPMENT_PLAN.md](file:///home/antigravity/DEVELOPMENT_PLAN.md) | ✅ Completato | Piano esecutivo completo di tutte le fasi |
-| **Tool Diagnostico Host** | [shell_probe.cpp](file:///home/antigravity/MarcoDiGioia/Apollonio/tools/shell_probe.cpp) | ✅ Compilato | Strumento standalone Windows C++20 per validare monitor, Z-order, Big Picture e switch di focus |
-| **Binario shell_probe.exe** | `/tmp/probe/shell_probe.exe` | ✅ Pronto per test | Eseguibile Windows a 64-bit standalone cross-compilato con Zig |
+| **Documento di Design** | `console_shell_design.md` | ✅ Completato | Specifica iniziale dettagliata |
+| **Piano di Sviluppo** | [DEVELOPMENT_PLAN.md](file:///home/antigravity/DEVELOPMENT_PLAN.md) | ✅ Completato | Piano esecutivo completo di tutte le 5 fasi |
+| **Stato Avanzamento** | [WORK_IN_PROGRESS.md](file:///home/antigravity/WORK_IN_PROGRESS.md) | ✅ Aggiornato | Registro decisioni e guida per agenti AI |
+| **Tool Diagnostico Host** | `Apollonio/tools/shell_probe.cpp` | ✅ Pronto | Strumento C++20 per validare monitor, Z-order, Big Picture e focus |
+| **CMake Integration** | `Apollonio/tools/CMakeLists.txt` | ✅ Integrato | Target `shell_probe` aggiunto al CMake di Apollonio |
 
 ---
 
-## 4. Prossimi Passi Immediati
+## 4. Prossimi Passi di Sviluppo (Roadmap Esecutiva)
 
-1. **Continuare l'analisi dettagliata della parte client (Artemide / Tizen)**:
-   - Esaminare la gestione del ciclo di vita dei gamepad in `wasm/gamepad.cpp` e `wasm/platform/gamepad.js`.
-   - Analizzare l'architettura del layout DOM e della navigazione da telecomando/controller in `wasm/platform/navigation.js` per pianificare l'inserimento non invasivo del Drawer.
-   - Definire l'interfaccia esatta tra WASM (C++) e JS (`messages.js`) per lo scambio bidirezionale dei dati shell.
-2. **Definire la procedura di test per la Fase 0**:
-   - Istruzioni per l'utente per l'esecuzione di `shell_probe.exe` sul PC gaming Windows.
-   - Test di cattura dell'input del controller collegato alla Smart TV.
+1. **Fase 0 (Validazione Hardware)**:
+   - Eseguire `shell_probe.exe` sul PC gaming Windows (`monitors`, `watch`, `backdrop`) per confermare il comportamento del Virtual Display e di Steam Big Picture.
+   - Testare su Artemide / TV Tizen la reattività del Gamepad per verificare l'assenza di ritardi con il grace period di 80 ms su Back+Start.
+2. **Fase 1 (Implementazione Supervisor Base `apollonio-shell`)**:
+   - Creare la struttura modulare `Apollonio/tools/apollonio-shell/` con l'interfaccia `IShellPlatform`.
+   - Implementare `WindowsShellPlatform` (Backdrop Kiosk nero, Z-order hook, Steam Desktop Config neutralizer).
+   - Implementare `LinuxShellPlatform` (Gamescope session launcher).
+   - Implementare la Named Pipe / Unix Socket per la telemetria.
+3. **Fase 2 (Drawer UI su Artemide & Canale 0x31xx)**:
+   - Implementare il Drawer overlay in `Artemide/wasm/index.html` e CSS.
+   - Agganciare la navigazione controller in `Artemide/wasm/platform/navigation.js` (`Views.ShellDrawer`).
+   - Abilitare la macchina a stati Back+Start in `Artemide/wasm/gamepad.cpp`.
+
+---
+
+## 5. Istruzioni di Handover per l'Agente AI Locale
+
+> **Messaggio per l'Agente AI che apre questo progetto**:
+> Ciao! Sei stato aperto per proseguire lo sviluppo della **Console-Like Shell** per streaming locale basata su **Apollonio** (Host) e **Artemide** (Client Tizen).
+>
+> 1. **NON ricominciare da capo e NON chiedere all'utente di rispiegare la visione**:
+>    - Leggi attentamente [DEVELOPMENT_PLAN.md](file:///home/antigravity/DEVELOPMENT_PLAN.md) (architettura, protocolli `0x31xx`, Z-order, smart mouse).
+>    - Leggi le decisioni bloccate nella Sezione 2 di questo file.
+> 2. **Stato dei Branch**:
+>    - Sia `Apollonio` sia `Artemide` si trovano sul branch dedicato: **`feature/console-shell`**. Lavora sempre su questo branch.
+> 3. **Cosa devi fare ora**:
+>    - Procedi con i compiti elencati nella **Sezione 4 (Prossimi Passi)** partendo dalla Fase 0/1.
+>    - Mantieni aggiornato questo file `WORK_IN_PROGRESS.md` man mano che completi i punti.
