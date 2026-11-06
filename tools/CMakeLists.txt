@@ -28,3 +28,16 @@ target_link_libraries(sunshinesvc
         wtsapi32
         ${PLATFORM_LIBRARIES})
 target_compile_options(sunshinesvc PRIVATE ${SUNSHINE_COMPILE_OPTIONS})
+
+add_executable(shell_probe shell_probe.cpp)
+set_target_properties(shell_probe PROPERTIES CXX_STANDARD 23)
+target_link_libraries(shell_probe
+        ${CMAKE_THREAD_LIBS_INIT}
+        user32
+        gdi32
+        advapi32
+        dwmapi
+        psapi
+        shell32
+        ${PLATFORM_LIBRARIES})
+target_compile_options(shell_probe PRIVATE ${SUNSHINE_COMPILE_OPTIONS})
