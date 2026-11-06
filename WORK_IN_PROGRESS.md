@@ -14,6 +14,10 @@
 
 ## 2. Decisioni Architetturali Approvate (Lock In)
 
+0. **Upstream Git e Base Codice Host (LizardByte/Sunshine)**:
+   - `Apollonio` è configurato con remote `upstream` puntato direttamente al repository ufficiale di **LizardByte/Sunshine** (`https://github.com/LizardByte/Sunshine.git`).
+   - Manteniamo la massima aderenza agli aggiornamenti di driver video (NVIDIA/AMD/Intel) e codec ufficiali, arricchendo Sunshine con i tre moduli proprietari: Virtual Display HDR (`IddSampleDriver`), Window Supervisor & Backdrop Kiosk (`apollonio-shell.exe`) e Control Protocol esteso `0x31xx`.
+
 1. **Topologia del Supervisor (`apollonio-shell.exe`)**:
    - Processo helper dedicato C++ residente nello stesso repo `Apollonio` (nella cartella `tools/`).
    - Eseguito nella **Sessione Utente attiva** (non come servizio SYSTEM) per interagire correttamente con le finestre Win32 (`SetForegroundWindow`, Z-order) senza incorrere nelle restrizioni UIPI di Windows.

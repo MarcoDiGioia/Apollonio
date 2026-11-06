@@ -1,8 +1,8 @@
 # Apollonio + Artemide: Piano di Sviluppo Completo (Console-Like Shell)
 
 Questo documento rappresenta la **guida tecnica definitiva** per lo sviluppo della nuova esperienza console-like locale basata sui fork:
-- **Host / Server**: `MarcoDiGioia/Apollonio` (fork di Apollo/Sunshine, Windows C++23)
-- **Client**: `MarcoDiGioia/Artemide` (fork di Moonlight Tizen, C++/WASM + HTML/JS per Samsung Smart TV)
+- **Host / Server**: `MarcoDiGioia/Apollonio` (upstream: `LizardByte/Sunshine` ufficiale + modulo Virtual Display HDR e Supervisor Console Shell, Windows C++23)
+- **Client**: `MarcoDiGioia/Artemide` (upstream: `brightcraft/moonlight-tizen` / Moonlight, C++/WASM + HTML/JS per Samsung Smart TV)
 
 ---
 
