@@ -66,6 +66,11 @@
      - **Linux Backend**: Gamescope / Wayland compositor sandbox, PipeWire/DRM/KMS, Steam process monitoring.
    - Permette lo sviluppo e il testing sia su workstation Linux sia su macchine gaming Windows.
 
+10. **Artemide come Console Companion Client per Sunshine**:
+    - Artemide evolve da semplice visualizzatore passivo a **Companion Client Console per qualsiasi server Sunshine / Apollonio**.
+    - Include l'overlay Drawer locale, la tastiera virtuale nativa e il routing avanzato di input.
+    - Se l'host dispone del modulo Supervisor, sblocca l'esperienza console al 99% (locandine offline, switch finestre, isolamento a nero). Se l'host è un Sunshine standard senza supervisor, Artemide continua a funzionare perfettamente fornendo tutte le funzionalità locali del Drawer.
+
 ---
 
 ## 3. Elementi Realizzati / Pronti

@@ -14,6 +14,10 @@ Trasformare il modello di streaming locale da semplice *"desktop mirroring passi
 3. **Drawer / Quick Menu Lato Client**: Overlay scorrevole su Tizen attivato con pressione prolungata di **Back + Start (800 ms)**, con task switcher, chiusura forzata, impostazioni e tastiera a schermo.
 4. **Gestione Intelligente del Mouse**: Cursore di Windows nascosto nello stream in modalità controller. Attivazione automatica dell'emulazione da stick solo quando un menu o popup richiede un puntatore.
 5. **Pausa Naturale & Audio Ducking**: Nessun freeze pericoloso a basso livello dei processi (`NtSuspendProcess`), ma sfruttamento del naturale `WM_KILLFOCUS` con attenuazione del volume del gioco in background via WASAPI.
+6. **Artemide come Console Companion Client per Sunshine**: Artemide evolve da semplice visualizzatore video passivo a vero e proprio **Companion Client Console**:
+   - Pienamente compatibile con qualsiasi installazione di Sunshine standard per stream video e audio.
+   - Integra in locale l'overlay Drawer (Quick Menu / Task Switcher), la Tastiera Virtuale nativa, la gestione host e le statistiche di rete.
+   - Quando collegato a un host con il Supervisor (`apollonio-shell`), sblocca l'esperienza console completa al 99% (locandine giochi, switch finestre, isolamento a nero e smart mouse).
 
 ---
 
